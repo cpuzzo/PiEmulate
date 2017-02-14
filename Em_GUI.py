@@ -15,9 +15,16 @@ TODO
 class Window(QtGui.QWidget):
     def __init__(self):
         QtGui.QWidget.__init__(self)
-        layout = QtGui.QGridLayout(self)
+        self.setWindowTitle("CeMPulator")
+        layout = QtGui.QVBoxLayout(self)        
         self.setStyleSheet("background: black; color: silver;")
-        #layout.addLayout(QtGui.QHBoxLayout,0,0)
+        
+        header = QtGui.QLabel("Choose a manufacturer to see available systems:")
+        header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        header.setStyleSheet('font-size: 15em; color: silver;')
+        header_font = QtGui.QFont("Times",18,QtGui.QFont.Bold)
+        header.setFont(header_font) 
+        layout.addWidget(header)
         
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
@@ -25,22 +32,11 @@ class Window(QtGui.QWidget):
         self.mfg_icon_basepath = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
         #self.showFullScreen()
         
-        #Initiate buttons
-        #back = QtGui.QPushButton(self)
-        #power = QtGui.QPushButton(self)
-        
         self.get_icons()
         self.buttons = []
         i = 0
         
-        label = QtGui.QLabel("Choose a manufacturer to see available systems:")
-        label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        label.setStyleSheet('font-size: 15em; color: silver;')
-        header_font = QtGui.QFont("Times",18,QtGui.QFont.Bold)
-        label.setFont(header_font)
-        layout.addWidget(label)
-
-        
+        grid = QtGui.QGridLayout(self)    
                 
         for mfg, systems in self.systems.items():
             icon_path = self.mfg_icon_basepath + mfg + '\\manufacturer.png'
@@ -48,14 +44,39 @@ class Window(QtGui.QWidget):
             self.buttons[-1].setIcon(QtGui.QIcon(icon_path))
             self.buttons[-1].setIconSize(QtCore.QSize(128,128))
             self.buttons[-1].clicked.connect(partial(self.handleButton,data=systems))
-            layout.addWidget(self.buttons[-1],1,i)
+            grid.addWidget(self.buttons[-1],0,i)
             
             label = QtGui.QLabel(mfg.capitalize())
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
-            layout.addWidget(label,2,i)
+            grid.addWidget(label,2,i)
             i += 1
-        self.setWindowTitle("CeMPulator")
+        layout.addLayout(grid)
+        
+        util_row = QtGui.QGridLayout(self)
+        back_btn = QtGui.QPushButton('',self)
+        back_btn.setIcon(QtGui.QIcon(self.mfg_icon_basepath + "gen\\back.png"))
+        back_btn.setIconSize(QtCore.QSize(64,64))
+        back_btn.clicked.connect(self.prevPage)
+        util_row.addWidget(back_btn,0,0)
+        
+        for x in range (1,3):
+            space = QtGui.QPushButton('',self)
+            util_row.addWidget(space,0,x)
+        
+        power_btn = QtGui.QPushButton('',self)
+        power_btn.setIcon(QtGui.QIcon(self.mfg_icon_basepath + "gen\\power.png"))
+        power_btn.setIconSize(QtCore.QSize(64,64))
+        power_btn.clicked.connect(self.powerDown)
+        util_row.addWidget(power_btn,0,4)
+        layout.addLayout(util_row)
+        
+    def prevPage(self):
+        pass
+
+    def powerDown(self):
+        pass        
+
         
     def handleButton(self, data='\n'):
         print(data)
