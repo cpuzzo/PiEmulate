@@ -6,10 +6,7 @@ from functools import partial
 '''
 TODO
 
-1. Set grid with messages and power/back button row 
-2. Add true Icon buttons
-3. Add support for users (using PyQt db support?)
-4. Formatting
+1. Add support for users (using PyQt db support?)
 '''
 
 class Window(QtGui.QWidget):
@@ -26,6 +23,8 @@ class Window(QtGui.QWidget):
         
         #Constants
         self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
+        self.EMULATOR_PATH = ""
+        self.ROM_PATH = ""
         
         #Set basic properties
         self.setWindowTitle("CeMPulator")
@@ -37,40 +36,44 @@ class Window(QtGui.QWidget):
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
         #define home screen layout
-        layout = QtGui.QVBoxLayout(self)        
+        self.layout = QtGui.QVBoxLayout(self)        
 
         #Instatiate header
-        header = QtGui.QLabel("Choose a manufacturer to see available systems:")
-        header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        header.setStyleSheet('font-size: 15em; color: silver;')
-        header_font = QtGui.QFont("Times",18,QtGui.QFont.Bold)
-        header.setFont(header_font) 
-        layout.addWidget(header)
+        self.layout.addWidget(self.buildHeader("Choose a manufacturer to see available systems:"))
         
         
-        self.mfg_buttons = []
-        i = 0
+        mfg_buttons = []
         
+        #create grid of manufacturer buttons        
         grid = QtGui.QGridLayout(self)    
-                
+        i = 0
         for mfg, systems in self.systems.items():
             icon_path = self.ASSET_PATH + mfg + '\\manufacturer.png'
             
-            self.mfg_buttons.append(QtGui.QPushButton('',self))
-            self.mfg_buttons[-1].setIcon(QtGui.QIcon(icon_path))
-            self.mfg_buttons[-1].setIconSize(QtCore.QSize(128,128))
-            self.mfg_buttons[-1].clicked.connect(partial(self.handleButton,mfg=mfg, systems=systems))
-            grid.addWidget(self.buttons[-1],0,i)
+            mfg_buttons.append(QtGui.QPushButton('',self))
+            mfg_buttons[-1].setIcon(QtGui.QIcon(icon_path))
+            mfg_buttons[-1].setIconSize(QtCore.QSize(128,128))
+            mfg_buttons[-1].clicked.connect(partial(self.openMfgScreen,mfg=mfg, systems=systems))
+            grid.addWidget(mfg_buttons[-1],0,i)
             
             label = QtGui.QLabel(mfg.capitalize())
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
             grid.addWidget(label,2,i)
             i += 1
-        layout.addLayout(grid)
+            
+        self.layout.addLayout(grid)
         
         #instantiate utility row
-        layout.addLayout(self.buildUtilRow())        
+        self.layout.addLayout(self.buildUtilRow())        
+    
+    def buildHeader(self, text):
+        header = QtGui.QLabel(text)
+        header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        header.setStyleSheet('font-size: 15em; color: silver;')
+        header_font = QtGui.QFont("Times",18,QtGui.QFont.Bold)
+        header.setFont(header_font) 
+        return header
     
     def buildUtilRow(self):
         '''Build bottom row containing power button and (on any screen other than 'home') a 'back' button'''        
@@ -99,17 +102,90 @@ class Window(QtGui.QWidget):
         power_btn.setIconSize(QtCore.QSize(64,64))
         power_btn.clicked.connect(self.powerDown)
         util_row.addWidget(power_btn,0,4)
-        
+     
         return util_row
     
-    def prevPage(self):
+    def openMfgScreen(self, mfg, systems):
+        '''Open Manufacturer screen showing available consoles'''
+        self.prev_screen = "home"
+        self.curr_screen = mfg.lower()
+        self.clearLayout(self.layout)
+        
+        self.layout.addWidget(self.buildHeader("Choose a system to see available games:"))
+        
+        grid = QtGui.QGridLayout(self)
+        num_systems = len(systems)
+        if num_systems > 4:
+            max_col = 4
+            rem = num_systems % 4
+        if num_systems % 4 == 0:
+            max_col = 4
+            rem = None
+        elif num_systems % 3 == 0:
+            max_col = 3
+            rem = None
+        elif len(systems) % 2 == 0:
+            max_col = 2
+            rem = None
+        else:
+            pass            
+            #self.layout.addWidget(QtGui.QPushButton('',self))
+  
+        i = 0
+        row = 0
+        for system in systems:
+            print('i ' + str(i))
+            print('col ' + str(max_col))
+            print('row ' + str(row))
+            if i == max_col:
+                print('here')
+                row += 1
+                i = 0
+
+                if rem is not None:
+                    num_systems += -1
+                    if num_systems < 4:
+                        max_col = 3
+                
+            icon_path = self.ASSET_PATH + mfg + '\\' + system.lower() + '.png'
+            sys_buttons = []            
+            
+            sys_buttons.append(QtGui.QPushButton('',self))
+            sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
+            sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
+            sys_buttons[-1].clicked.connect(partial(self.openSysScreen,system=system))
+            grid.addWidget(sys_buttons[-1],row,i)
+            
+            label = QtGui.QLabel(system)
+            label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+            label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
+            grid.addWidget(label,2,i)
+            i += 1
+            
+        self.layout.addLayout(grid)
+        
+        self.layout.addLayout(self.buildUtilRow())
+
+    def openSysScreen(self):
         pass
+        
+
+    def prevPage(self):
+        if self.prev_screen == "home":
+            self.openHomeScreen()
 
     def powerDown(self):
         pass        
-
-    def handleButton(self, mfg, systems):
-        print(data)
+    
+    def clearLayout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.clearLayout(item.layout())
         
     def get_icons(self):
         
