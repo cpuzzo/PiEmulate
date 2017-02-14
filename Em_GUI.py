@@ -14,11 +14,32 @@ TODO
 
 class Window(QtGui.QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
-        self.setWindowTitle("CeMPulator")
-        layout = QtGui.QVBoxLayout(self)        
-        self.setStyleSheet("background: black; color: silver;")
+        super(Window, self).__init__()        
         
+        #General use variables        
+        self.curr_screen = "home"
+        self.prev_screen = ""
+        self.systems = {} #manufacturers    
+        self.sys_icons = {} #systems icon paths
+        #read text files to fill systems and sys_icons dictionaries        
+        self.get_icons()        
+        
+        #Constants
+        self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
+        
+        #Set basic properties
+        self.setWindowTitle("CeMPulator")
+        self.setStyleSheet("background: black; color: silver;")
+
+        self.openHomeScreen()
+        #self.showFullScreen()
+        
+    def openHomeScreen(self):
+        '''Build home screen containing manufacturer logos'''
+        #define home screen layout
+        layout = QtGui.QVBoxLayout(self)        
+
+        #Instatiate header
         header = QtGui.QLabel("Choose a manufacturer to see available systems:")
         header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         header.setStyleSheet('font-size: 15em; color: silver;')
@@ -26,24 +47,19 @@ class Window(QtGui.QWidget):
         header.setFont(header_font) 
         layout.addWidget(header)
         
-        self.systems = {} #manufacturers    
-        self.sys_icons = {} #systems icon paths
         
-        self.mfg_icon_basepath = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
-        #self.showFullScreen()
-        
-        self.get_icons()
-        self.buttons = []
+        self.mfg_buttons = []
         i = 0
         
         grid = QtGui.QGridLayout(self)    
                 
         for mfg, systems in self.systems.items():
-            icon_path = self.mfg_icon_basepath + mfg + '\\manufacturer.png'
-            self.buttons.append(QtGui.QPushButton('',self))
-            self.buttons[-1].setIcon(QtGui.QIcon(icon_path))
-            self.buttons[-1].setIconSize(QtCore.QSize(128,128))
-            self.buttons[-1].clicked.connect(partial(self.handleButton,data=systems))
+            icon_path = self.ASSET_PATH + mfg + '\\manufacturer.png'
+            
+            self.mfg_buttons.append(QtGui.QPushButton('',self))
+            self.mfg_buttons[-1].setIcon(QtGui.QIcon(icon_path))
+            self.mfg_buttons[-1].setIconSize(QtCore.QSize(128,128))
+            self.mfg_buttons[-1].clicked.connect(partial(self.handleButton,mfg=mfg, systems=systems))
             grid.addWidget(self.buttons[-1],0,i)
             
             label = QtGui.QLabel(mfg.capitalize())
@@ -53,32 +69,46 @@ class Window(QtGui.QWidget):
             i += 1
         layout.addLayout(grid)
         
+        #instantiate utility row
+        layout.addLayout(self.buildUtilRow())        
+    
+    def buildUtilRow(self):
+        '''Build bottom row containing power button and (on any screen other than 'home') a 'back' button'''        
+      
         util_row = QtGui.QGridLayout(self)
-        back_btn = QtGui.QPushButton('',self)
-        back_btn.setIcon(QtGui.QIcon(self.mfg_icon_basepath + "gen\\back.png"))
-        back_btn.setIconSize(QtCore.QSize(64,64))
-        back_btn.clicked.connect(self.prevPage)
-        util_row.addWidget(back_btn,0,0)
-        
-        for x in range (1,3):
+        if self.curr_screen != "home":
+            start_col = 1            
+            
+            back_btn = QtGui.QPushButton('',self)
+            back_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\back.png"))
+            back_btn.setIconSize(QtCore.QSize(64,64))
+            back_btn.clicked.connect(self.prevPage)
+            util_row.addWidget(back_btn,0,0)
+            
+        else:
+            start_col = 0 
+            
+        for x in range (start_col,3):
+            #create empty grid cells
             space = QtGui.QPushButton('',self)
             util_row.addWidget(space,0,x)
-        
+
+        #create power down button
         power_btn = QtGui.QPushButton('',self)
-        power_btn.setIcon(QtGui.QIcon(self.mfg_icon_basepath + "gen\\power.png"))
+        power_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\power.png"))
         power_btn.setIconSize(QtCore.QSize(64,64))
         power_btn.clicked.connect(self.powerDown)
         util_row.addWidget(power_btn,0,4)
-        layout.addLayout(util_row)
         
+        return util_row
+    
     def prevPage(self):
         pass
 
     def powerDown(self):
         pass        
 
-        
-    def handleButton(self, data='\n'):
+    def handleButton(self, mfg, systems):
         print(data)
         
     def get_icons(self):
