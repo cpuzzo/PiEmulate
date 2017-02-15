@@ -6,7 +6,6 @@ from functools import partial
 '''
 TODO
 
-1. Add "Are you sure for power down"
 2. Add support for users (using PyQt db support?)
 '''
 
@@ -20,21 +19,26 @@ class Window(QtGui.QWidget):
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
         self.sys_ems = {} #correlate systems to emulators
-        
-        #read text files to fill systems and sys_icons dictionaries        
-        self.get_icons()        
-        
+                
         #Constants
         #self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
         self.ASSET_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\assets\\"
         self.EMULATOR_PATH = ""
         self.ROM_PATH = ""
         
+        #self.TXT_PATH r"/home/pi/Desktop/EMpaths"
+        #self.TXT_PATH = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
+        self.TXT_PATH = r"C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\icons.txt"
+        
         #Set basic properties
         self.setWindowTitle("CeMPulator")
         self.setStyleSheet("background: black; color: silver;")
         self.layout = QtGui.QVBoxLayout(self)  
         
+        #read text files to fill systems and sys_icons dictionaries        
+        self.get_icons()                
+        
+        #open display
         self.openHomeScreen()
         #self.showFullScreen()
         
@@ -44,7 +48,6 @@ class Window(QtGui.QWidget):
         self.curr_screen = "home"
         #Instatiate header
         self.layout.addWidget(self.buildHeader("Choose a manufacturer to see available systems:"))
-        
         
         mfg_buttons = []
         
@@ -182,37 +185,32 @@ class Window(QtGui.QWidget):
 
     def powerDown(self):
         self.clearLayout(self.layout)
-        
         self.layout.addWidget(self.buildHeader("Are you sure you would like to shut down?"))
-
-        choice_row = QtGui.QGridLayout(self)
         
-        sure = []
+        choice_row = QtGui.QGridLayout(self)    
         #create NO button        
         no_btn = QtGui.QPushButton('',self)
         no_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\no.png"))
         no_btn.setIconSize(QtCore.QSize(64,64))
-        no_btn.clicked.connect(lambda : sure.__setitem__(0,False))
+        no_btn.clicked.connect(partial(self.shutdownUserChoice,choice=False))
         choice_row.addWidget(no_btn,0,0)
         
         #create YES button
         yes_btn = QtGui.QPushButton('',self)
         yes_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\confirm.png"))
         yes_btn.setIconSize(QtCore.QSize(64,64))
-        yes_btn.clicked.connect(lambda : sure.__setitem__(0,True))
+        yes_btn.clicked.connect(partial(self.shutdownUserChoice,choice=True))
         choice_row.addWidget(yes_btn,0,1)   
         
-        self.layout.addWidget(choice_row)
-
-        print("here")
-        #sure = True
-        if True == sure[0]:
+        self.layout.addLayout(choice_row)
+            
+    def shutdownUserChoice(self, choice):
+        if True == choice:
             self.close()     
             #os.system('shutdown now -h')
         else:
-            self.prevPage()
-            
-
+            #self.prevPage()
+            pass
     
     def clearLayout(self, layout):
         if layout is not None:
@@ -225,13 +223,10 @@ class Window(QtGui.QWidget):
                     self.clearLayout(item.layout())
         
     def get_icons(self):
-        
-        #f = open("/home/pi/Desktop/EMpaths")
-        #txt_path = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
-        txt_path = r"C:\Users\cpuzzo\Documents\GitHub\PiEmulate\icons.txt"
+        '''fetch manufacturer and system information from logfile'''
         curr_mfg = ""
         mfg_sys = []
-        f = open(txt_path)
+        f = open(self.TXT_PATH)
         
         for line in f.readlines():
             if '~' in line:
