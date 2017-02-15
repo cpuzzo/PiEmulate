@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, re
+import sys, re, os
 from PyQt4 import QtGui, QtCore
 from functools import partial
 
@@ -25,7 +25,8 @@ class Window(QtGui.QWidget):
         self.get_icons()        
         
         #Constants
-        self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
+        #self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
+        self.ASSET_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\assets\\"
         self.EMULATOR_PATH = ""
         self.ROM_PATH = ""
         
@@ -40,6 +41,7 @@ class Window(QtGui.QWidget):
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
 
+        self.curr_screen = "home"
         #Instatiate header
         self.layout.addWidget(self.buildHeader("Choose a manufacturer to see available systems:"))
         
@@ -59,7 +61,7 @@ class Window(QtGui.QWidget):
             grid.addWidget(mfg_buttons[-1],0,i)
             
             label = QtGui.QLabel(mfg.capitalize())
-            label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+            label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
             grid.addWidget(label,2,i)
             i += 1
@@ -171,14 +173,46 @@ class Window(QtGui.QWidget):
     def openSysScreen(self):
         pass
         
-
     def prevPage(self):
         self.clearLayout(self.layout)
         if self.prev_screen == "home":
             self.openHomeScreen()
+            
+        self.prev_screen = self.curr_screen
 
     def powerDown(self):
-        self.close()      
+        self.clearLayout(self.layout)
+        
+        self.layout.addWidget(self.buildHeader("Are you sure you would like to shut down?"))
+
+        choice_row = QtGui.QGridLayout(self)
+        
+        sure = []
+        #create NO button        
+        no_btn = QtGui.QPushButton('',self)
+        no_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\no.png"))
+        no_btn.setIconSize(QtCore.QSize(64,64))
+        no_btn.clicked.connect(lambda : sure.__setitem__(0,False))
+        choice_row.addWidget(no_btn,0,0)
+        
+        #create YES button
+        yes_btn = QtGui.QPushButton('',self)
+        yes_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\confirm.png"))
+        yes_btn.setIconSize(QtCore.QSize(64,64))
+        yes_btn.clicked.connect(lambda : sure.__setitem__(0,True))
+        choice_row.addWidget(yes_btn,0,1)   
+        
+        self.layout.addWidget(choice_row)
+
+        print("here")
+        #sure = True
+        if True == sure[0]:
+            self.close()     
+            #os.system('shutdown now -h')
+        else:
+            self.prevPage()
+            
+
     
     def clearLayout(self, layout):
         if layout is not None:
@@ -193,7 +227,8 @@ class Window(QtGui.QWidget):
     def get_icons(self):
         
         #f = open("/home/pi/Desktop/EMpaths")
-        txt_path = ("C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt")
+        #txt_path = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
+        txt_path = r"C:\Users\cpuzzo\Documents\GitHub\PiEmulate\icons.txt"
         curr_mfg = ""
         mfg_sys = []
         f = open(txt_path)
