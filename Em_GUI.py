@@ -6,7 +6,8 @@ from functools import partial
 '''
 TODO
 
-1. Add support for users (using PyQt db support?)
+1. Add "Are you sure for power down"
+2. Add support for users (using PyQt db support?)
 '''
 
 class Window(QtGui.QWidget):
@@ -18,6 +19,7 @@ class Window(QtGui.QWidget):
         self.prev_screen = ""
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
+        self.sys_ems = {} #correlate systems to emulators
         #read text files to fill systems and sys_icons dictionaries        
         self.get_icons()        
         
@@ -29,14 +31,14 @@ class Window(QtGui.QWidget):
         #Set basic properties
         self.setWindowTitle("CeMPulator")
         self.setStyleSheet("background: black; color: silver;")
-
+        self.layout = QtGui.QVBoxLayout(self)  
+        
         self.openHomeScreen()
         #self.showFullScreen()
         
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
-        #define home screen layout
-        self.layout = QtGui.QVBoxLayout(self)        
+      
 
         #Instatiate header
         self.layout.addWidget(self.buildHeader("Choose a manufacturer to see available systems:"))
@@ -171,11 +173,13 @@ class Window(QtGui.QWidget):
         
 
     def prevPage(self):
+        self.clearLayout(self.layout)
+        print(self.prev_screen)
         if self.prev_screen == "home":
             self.openHomeScreen()
 
     def powerDown(self):
-        pass        
+        self.close()      
     
     def clearLayout(self, layout):
         if layout is not None:
