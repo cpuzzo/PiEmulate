@@ -141,9 +141,6 @@ class Window(QtGui.QWidget):
         i = 0
         row = 0
         for system in systems:
-            print('i ' + str(i))
-            print('col ' + str(max_col))
-            print('row ' + str(row))
             if i == max_col:
                 print('here')
                 row += 1
@@ -170,7 +167,6 @@ class Window(QtGui.QWidget):
             i += 1
             
         self.layout.addLayout(grid)
-        
         self.layout.addLayout(self.buildUtilRow())
 
     def openSysScreen(self):
