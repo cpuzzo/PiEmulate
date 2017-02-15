@@ -20,6 +20,7 @@ class Window(QtGui.QWidget):
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
         self.sys_ems = {} #correlate systems to emulators
+        
         #read text files to fill systems and sys_icons dictionaries        
         self.get_icons()        
         
@@ -38,7 +39,6 @@ class Window(QtGui.QWidget):
         
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
-      
 
         #Instatiate header
         self.layout.addWidget(self.buildHeader("Choose a manufacturer to see available systems:"))
@@ -174,7 +174,6 @@ class Window(QtGui.QWidget):
 
     def prevPage(self):
         self.clearLayout(self.layout)
-        print(self.prev_screen)
         if self.prev_screen == "home":
             self.openHomeScreen()
 
