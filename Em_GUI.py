@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 import sys, re, os
+from glob import glob
 from PyQt4 import QtGui, QtCore
 from functools import partial
 
 '''
 TODO
-
+1. Remove need for re package
 2. Add support for users (using PyQt db support?)
+'''
+
+'''
+BUGS
+-Back button doesn't work after clicking "no" on shutdown screen
 '''
 
 class Window(QtGui.QWidget):
@@ -15,20 +21,21 @@ class Window(QtGui.QWidget):
         
         #General use variables        
         self.curr_screen = "home"
-        self.prev_screen = ""
+        self.prev_screens = ['']
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
         self.sys_ems = {} #correlate systems to emulators
                 
         #Constants
+        self.BASE_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\"
         #self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
-        self.ASSET_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\assets\\"
+        self.ASSET_PATH = self.BASE_PATH + "assets\\"
         self.EMULATOR_PATH = ""
         self.ROM_PATH = ""
         
         #self.TXT_PATH r"/home/pi/Desktop/EMpaths"
         #self.TXT_PATH = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
-        self.TXT_PATH = r"C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\icons.txt"
+        self.TXT_PATH = self.BASE_PATH + r"icons.txt"
         
         #Set basic properties
         self.setWindowTitle("CeMPulator")
@@ -75,6 +82,7 @@ class Window(QtGui.QWidget):
         self.layout.addLayout(self.buildUtilRow())        
     
     def buildHeader(self, text):
+        '''Build header message'''
         header = QtGui.QLabel(text)
         header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         header.setStyleSheet('font-size: 15em; color: silver;')
@@ -114,7 +122,8 @@ class Window(QtGui.QWidget):
     
     def openMfgScreen(self, mfg, systems):
         '''Open Manufacturer screen showing available consoles'''
-        self.prev_screen = "home"
+        self.prev_screens = [self.curr_screen] + [self.prev_screens[0]]
+        
         self.curr_screen = mfg.lower()
         self.clearLayout(self.layout)
         
@@ -138,13 +147,12 @@ class Window(QtGui.QWidget):
             pass            
             #self.layout.addWidget(QtGui.QPushButton('',self))
   
-        i = 0
+        col = 0
         row = 0
         for system in systems:
-            if i == max_col:
-                print('here')
-                row += 1
-                i = 0
+            if col == max_col:
+                row += 2
+                col = 0
 
                 if rem is not None:
                     num_systems += -1
@@ -158,28 +166,40 @@ class Window(QtGui.QWidget):
             sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
             sys_buttons[-1].clicked.connect(partial(self.openSysScreen,system=system))
-            grid.addWidget(sys_buttons[-1],row,i)
+            grid.addWidget(sys_buttons[-1],row,col)
             
             label = QtGui.QLabel(system)
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
-            grid.addWidget(label,2,i)
-            i += 1
+            grid.addWidget(label,row+1,col)
+            col += 1
             
         self.layout.addLayout(grid)
         self.layout.addLayout(self.buildUtilRow())
 
-    def openSysScreen(self):
+    def openSysScreen(self, system):
         pass
         
     def prevPage(self):
         self.clearLayout(self.layout)
-        if self.prev_screen == "home":
+        
+        #if going back to the home screen
+        if self.prev_screens[0] == "home":
             self.openHomeScreen()
+        
+        #if going back to a manufacturer screen
+        elif self.prev_screens[0] in self.systems.keys():
+            self.openMfgScreen(self.prev_screens[0], self.systems[self.prev_screens[0]])
             
-        self.prev_screen = self.curr_screen
+        else:
+            pass
+            
+        self.prev_screens = [self.curr_screen] + [self.prev_screen[0]]
 
     def powerDown(self):
+        self.prev_screens = [self.curr_screen]+[self.prev_screens[0]]        
+        self.curr_screen = "power"
+        
         self.clearLayout(self.layout)
         self.layout.addWidget(self.buildHeader("Are you sure you would like to shut down?"))
         
@@ -205,8 +225,7 @@ class Window(QtGui.QWidget):
             self.close()     
             #os.system('shutdown now -h')
         else:
-            #self.prevPage()
-            pass
+            self.prevPage()
     
     def clearLayout(self, layout):
         if layout is not None:
