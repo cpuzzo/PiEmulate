@@ -8,12 +8,14 @@ from functools import partial
 TODO
 1. Remove need for re package
 2. Add support for users (using PyQt db support?)
+3. Fix concatenation to use string formatting
 '''
 
 '''
 BUGS
 -Back button doesn't work after clicking "no" on shutdown screen
 '''
+
 
 class Window(QtGui.QWidget):
     def __init__(self):
@@ -24,18 +26,30 @@ class Window(QtGui.QWidget):
         self.prev_screens = ['']
         self.systems = {} #manufacturers    
         self.sys_icons = {} #systems icon paths
-        self.sys_ems = {} #correlate systems to emulators
-                
+        self.sys_ems = {'nes': 'nestopia'} #correlate systems to emulators        
+        
+        debug = True
         #Constants
-        self.BASE_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\"
+        if True == debug:        
+            #WINDOWS setup
+            self.BASE_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\"  
+            self.ASSET_PATH = self.BASE_PATH + "assets\\"
+            self.EMULATOR_PATH = ""
+            self.ROM_PATH = ""
+            self.TXT_PATH = self.BASE_PATH + r"icons.txt"
+        else:
+            #LINUX setup
+            pass
+                
+
+        #self.BASE_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\"
+
         #self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
-        self.ASSET_PATH = self.BASE_PATH + "assets\\"
-        self.EMULATOR_PATH = ""
-        self.ROM_PATH = ""
+
         
         #self.TXT_PATH r"/home/pi/Desktop/EMpaths"
         #self.TXT_PATH = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
-        self.TXT_PATH = self.BASE_PATH + r"icons.txt"
+
         
         #Set basic properties
         self.setWindowTitle("CeMPulator")
@@ -165,7 +179,7 @@ class Window(QtGui.QWidget):
             sys_buttons.append(QtGui.QPushButton('',self))
             sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
-            sys_buttons[-1].clicked.connect(partial(self.openSysScreen,system=system))
+            sys_buttons[-1].clicked.connect(partial(self.openSysScreen,mfg=mfg,system=system))
             grid.addWidget(sys_buttons[-1],row,col)
             
             label = QtGui.QLabel(system)
@@ -177,9 +191,73 @@ class Window(QtGui.QWidget):
         self.layout.addLayout(grid)
         self.layout.addLayout(self.buildUtilRow())
 
-    def openSysScreen(self, system):
-        pass
+    def openSysScreen(self, mfg, system):
+        self.prev_screens = [self.curr_screen] + [self.prev_screens[0]]
         
+        self.curr_screen = mfg.lower()
+        self.clearLayout(self.layout)
+        
+        self.layout.addWidget(self.buildHeader("Select Game:"))
+        roms = glob(self.ASSET_PATH + mfg + "\\roms\\*." + system.lower())
+
+    
+        grid = QtGui.QGridLayout(self)
+        num_roms = len(roms)
+        if num_roms > 4:
+            max_col = 4
+            rem = num_roms % 4
+        if num_roms % 4 == 0:
+            max_col = 4
+            rem = None
+        elif num_roms % 3 == 0:
+            max_col = 3
+            rem = None
+        elif num_roms % 2 == 0:
+            max_col = 2
+            rem = None
+        else:
+            pass            
+            #self.layout.addWidget(QtGui.QPushButton('',self))        
+        
+        col = 0
+        row = 0
+        for rom in roms:
+            game = rom.split('\\')[-1].split('.')[0]
+            ico = self.ASSET_PATH + mfg + "\\icons\\" + game + ".png"
+            print(ico)
+            if col == max_col:
+                row += 2
+                col = 0
+
+                if rem is not None:
+                    num_roms += -1
+                    if num_roms < 4:
+                        max_col = 3
+
+            game_buttons = []            
+            
+            game_buttons.append(QtGui.QPushButton('',self))
+            game_buttons[-1].setIcon(QtGui.QIcon(ico))
+            game_buttons[-1].setIconSize(QtCore.QSize(128,128))
+            game_buttons[-1].clicked.connect(partial(self.startRom,system=system,rom=rom))
+            grid.addWidget(game_buttons[-1],row,col)
+            
+            label = QtGui.QLabel(game)
+            label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+            label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
+            grid.addWidget(label,row+1,col)
+            col += 1
+            
+        self.layout.addLayout(grid)
+        self.layout.addLayout(self.buildUtilRow())
+        
+            
+        
+    def startRom(self, system, rom):
+        em_path = self.BASE_PATH + "emulators\\" + self.sys_ems[system.lower()] + ".exe"
+        print(em_path + " \"" + rom + "\"")
+        os.system(em_path + " \"" + rom + "\"")            
+
     def prevPage(self):
         self.clearLayout(self.layout)
         
@@ -194,7 +272,7 @@ class Window(QtGui.QWidget):
         else:
             pass
             
-        self.prev_screens = [self.curr_screen] + [self.prev_screen[0]]
+        self.prev_screens = [self.curr_screen] + [self.prev_screens[0]]
 
     def powerDown(self):
         self.prev_screens = [self.curr_screen]+[self.prev_screens[0]]        
