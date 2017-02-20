@@ -543,7 +543,7 @@
             <fps>no</fps>
             <on-top>no</on-top>
             <status-bar>yes</status-bar>
-            <window-menu>no</window-menu>
+            <window-menu>yes</window-menu>
         </show>
         <size>
             <fullscreen>matched</fullscreen>

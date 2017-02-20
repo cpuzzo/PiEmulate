@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, re, os
+import sys, os
 from glob import glob
 from PyQt4 import QtGui, QtCore
 from functools import partial
@@ -61,7 +61,7 @@ class Window(QtGui.QWidget):
         
         #open display
         self.openHomeScreen()
-        #self.showFullScreen()
+        self.showFullScreen()
         
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
@@ -148,7 +148,7 @@ class Window(QtGui.QWidget):
         if num_systems > 4:
             max_col = 4
             rem = num_systems % 4
-        if num_systems % 4 == 0:
+        elif num_systems % 4 == 0:
             max_col = 4
             rem = None
         elif num_systems % 3 == 0:
@@ -158,8 +158,8 @@ class Window(QtGui.QWidget):
             max_col = 2
             rem = None
         else:
-            pass            
-            #self.layout.addWidget(QtGui.QPushButton('',self))
+            max_col = 1     
+            rem = None
   
         col = 0
         row = 0
@@ -174,8 +174,8 @@ class Window(QtGui.QWidget):
                         max_col = 3
                 
             icon_path = self.ASSET_PATH + mfg + '\\' + system.lower() + '.png'
-            sys_buttons = []            
-            
+                        
+            sys_buttons = []                        
             sys_buttons.append(QtGui.QPushButton('',self))
             sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
@@ -193,14 +193,12 @@ class Window(QtGui.QWidget):
 
     def openSysScreen(self, mfg, system):
         self.prev_screens = [self.curr_screen] + [self.prev_screens[0]]
-        
-        self.curr_screen = mfg.lower()
+        self.curr_screen = system.lower()
         self.clearLayout(self.layout)
         
         self.layout.addWidget(self.buildHeader("Select Game:"))
         roms = glob(self.ASSET_PATH + mfg + "\\roms\\*." + system.lower())
 
-    
         grid = QtGui.QGridLayout(self)
         num_roms = len(roms)
         if num_roms > 4:
@@ -235,7 +233,6 @@ class Window(QtGui.QWidget):
                         max_col = 3
 
             game_buttons = []            
-            
             game_buttons.append(QtGui.QPushButton('',self))
             game_buttons[-1].setIcon(QtGui.QIcon(ico))
             game_buttons[-1].setIconSize(QtCore.QSize(128,128))
@@ -250,13 +247,10 @@ class Window(QtGui.QWidget):
             
         self.layout.addLayout(grid)
         self.layout.addLayout(self.buildUtilRow())
-        
-            
-        
+         
     def startRom(self, system, rom):
         em_path = self.BASE_PATH + "emulators\\" + self.sys_ems[system.lower()] + ".exe"
-        print(em_path + " \"" + rom + "\"")
-        os.system(em_path + " \"" + rom + "\"")            
+        os.system("START /MAX " + em_path + " \"" + rom + "\"")            
 
     def prevPage(self):
         self.clearLayout(self.layout)
@@ -322,9 +316,11 @@ class Window(QtGui.QWidget):
         f = open(self.TXT_PATH)
         
         for line in f.readlines():
-            if '~' in line:
+            if line[0] == "#":
+                next
+            elif '~' in line:
                 mfg_sys=[]
-                curr_mfg = re.split('~',line)[1]
+                curr_mfg = line.split('~')[1]
                 if curr_mfg != "":
                     self.systems[curr_mfg] = mfg_sys
             else:
