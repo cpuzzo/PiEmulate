@@ -324,7 +324,7 @@ class Window(QtGui.QWidget):
                 if curr_mfg != "":
                     self.systems[curr_mfg] = mfg_sys
             else:
-                system = re.split(r"\\",line)[-1][:-1:] #get system name without newline
+                system = line.strip() #get system name without newline
                 mfg_sys.append(system)
                 self.sys_icons[system] = line
                 
