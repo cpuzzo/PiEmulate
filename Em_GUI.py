@@ -9,6 +9,7 @@ TODO
 1. Remove need for re package
 2. Add support for users (using PyQt db support?)
 3. Fix concatenation to use string formatting
+4. Add support for minecraft
 '''
 
 '''
@@ -28,29 +29,24 @@ class Window(QtGui.QWidget):
         self.sys_icons = {} #systems icon paths
         self.sys_ems = {'nes': 'nestopia'} #correlate systems to emulators        
         
-        debug = True
-        #Constants
-        if True == debug:        
-            #WINDOWS setup
-            self.BASE_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\"  
-            self.ASSET_PATH = self.BASE_PATH + "assets\\"
-            self.EMULATOR_PATH = ""
-            self.ROM_PATH = ""
+        self.debug = True
+        
+        #CONSTANTS
+        if True == self.debug:
+            #WINDOWS
+            self.OS_SEP = "\\"
+            self.BASE_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\"
             self.TXT_PATH = self.BASE_PATH + r"icons.txt"
         else:
-            #LINUX setup
-            pass
+            #LINUX
+            self.OS_SEP = "/"
+            self.BASE_PATH = "/home/pi/Desktop/PiEmulate/"
+            self.TXT_PATH = self.BASE_PATH + r"icons"
+    
+        self.ASSET_PATH = self.BASE_PATH + "assets" + self.OS_SEP
+        self.EMULATOR_PATH = ""
+        self.ROM_PATH = ""
                 
-
-        #self.BASE_PATH = "C:\\Users\\cpuzzo\\Documents\\GitHub\\PiEmulate\\"
-
-        #self.ASSET_PATH = "C:\\Users\\Christopher\\Documents\\GitHub\\PiEmulate\\assets\\"
-
-        
-        #self.TXT_PATH r"/home/pi/Desktop/EMpaths"
-        #self.TXT_PATH = r"C:\Users\Christopher\Documents\GitHub\PiEmulate\icons.txt"
-
-        
         #Set basic properties
         self.setWindowTitle("CeMPulator")
         self.setStyleSheet("background: black; color: silver;")
@@ -76,7 +72,7 @@ class Window(QtGui.QWidget):
         grid = QtGui.QGridLayout(self)    
         i = 0
         for mfg, systems in self.systems.items():
-            icon_path = self.ASSET_PATH + mfg + '\\manufacturer.png'
+            icon_path = self.ASSET_PATH + mfg + self.OS_SEP + 'manufacturer.png'
             
             mfg_buttons.append(QtGui.QPushButton('',self))
             mfg_buttons[-1].setIcon(QtGui.QIcon(icon_path))
@@ -112,7 +108,7 @@ class Window(QtGui.QWidget):
             start_col = 1            
             
             back_btn = QtGui.QPushButton('',self)
-            back_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\back.png"))
+            back_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" + self.OS_SEP + "back.png"))
             back_btn.setIconSize(QtCore.QSize(64,64))
             back_btn.clicked.connect(self.prevPage)
             util_row.addWidget(back_btn,0,0)
@@ -127,7 +123,7 @@ class Window(QtGui.QWidget):
 
         #create power down button
         power_btn = QtGui.QPushButton('',self)
-        power_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\power.png"))
+        power_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" + self.OS_SEP +"power.png"))
         power_btn.setIconSize(QtCore.QSize(64,64))
         power_btn.clicked.connect(self.powerDown)
         util_row.addWidget(power_btn,0,4)
@@ -173,7 +169,7 @@ class Window(QtGui.QWidget):
                     if num_systems < 4:
                         max_col = 3
                 
-            icon_path = self.ASSET_PATH + mfg + '\\' + system.lower() + '.png'
+            icon_path = self.ASSET_PATH + mfg + self.OS_SEP + system.lower() + '.png'
                         
             sys_buttons = []                        
             sys_buttons.append(QtGui.QPushButton('',self))
@@ -197,7 +193,7 @@ class Window(QtGui.QWidget):
         self.clearLayout(self.layout)
         
         self.layout.addWidget(self.buildHeader("Select Game:"))
-        roms = glob(self.ASSET_PATH + mfg + "\\roms\\*." + system.lower())
+        roms = glob(self.ASSET_PATH + mfg + self.OS_SEP + "roms" + self.OS_SEP + "*." + system.lower())
 
         grid = QtGui.QGridLayout(self)
         num_roms = len(roms)
@@ -221,7 +217,7 @@ class Window(QtGui.QWidget):
         row = 0
         for rom in roms:
             game = rom.split('\\')[-1].split('.')[0]
-            ico = self.ASSET_PATH + mfg + "\\icons\\" + game + ".png"
+            ico = self.ASSET_PATH + mfg + self.OS_SEP + "icons" + self.OS_SEP + game + ".png"
             print(ico)
             if col == max_col:
                 row += 2
@@ -249,8 +245,12 @@ class Window(QtGui.QWidget):
         self.layout.addLayout(self.buildUtilRow())
          
     def startRom(self, system, rom):
-        em_path = self.BASE_PATH + "emulators\\" + self.sys_ems[system.lower()] + ".exe"
-        os.system("START /MAX " + em_path + " \"" + rom + "\"")            
+        em_path = self.BASE_PATH + "emulators" + self.OS_SEP + self.sys_ems[system.lower()] + ".exe"
+        
+        if True == self.debug:
+            os.system("START /MAX " + em_path + " \"" + rom + "\"")            
+        else:
+            os.system("sudo ")
 
     def prevPage(self):
         self.clearLayout(self.layout)
