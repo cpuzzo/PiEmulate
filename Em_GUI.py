@@ -170,14 +170,14 @@ class Window(QtWidgets.QWidget):
                         max_col = 3
 
             icon_path = self.ASSET_PATH + mfg + self.OS_SEP + system.lower() + '.png'
-            print(icon_path)   
+
             sys_buttons = []                        
             sys_buttons.append(QtWidgets.QPushButton('',self))
             sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
             sys_buttons[-1].clicked.connect(partial(self.openSysScreen,mfg=mfg,system=system))
             grid.addWidget(sys_buttons[-1],row,col)
-            print("D")
+
             label = QtWidgets.QLabel(system)
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
@@ -218,7 +218,7 @@ class Window(QtWidgets.QWidget):
         for rom in roms:
             game = rom.split(self.OS_SEP)[-1].split('.')[0]
             ico = self.ASSET_PATH + mfg + self.OS_SEP + "icons" + self.OS_SEP + game + ".png"
-            print(ico)
+
             if col == max_col:
                 row += 2
                 col = 0
@@ -278,14 +278,14 @@ class Window(QtWidgets.QWidget):
         choice_row = QtWidgets.QGridLayout(self)    
         #create NO button        
         no_btn = QtWidgets.QPushButton('',self)
-        no_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\no.png"))
+        no_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" +self.OS_SEP + "no.png"))
         no_btn.setIconSize(QtCore.QSize(64,64))
         no_btn.clicked.connect(partial(self.shutdownUserChoice,choice=False))
         choice_row.addWidget(no_btn,0,0)
         
         #create YES button
         yes_btn = QtWidgets.QPushButton('',self)
-        yes_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\confirm.png"))
+        yes_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" +self.OS_SEP + "confirm.png"))
         yes_btn.setIconSize(QtCore.QSize(64,64))
         yes_btn.clicked.connect(partial(self.shutdownUserChoice,choice=True))
         choice_row.addWidget(yes_btn,0,1)   
