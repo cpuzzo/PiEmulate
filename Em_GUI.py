@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys, os
 from glob import glob
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from functools import partial
 
 '''
@@ -18,7 +18,7 @@ BUGS
 '''
 
 
-class Window(QtGui.QWidget):
+class Window(QtWidgets.QWidget):
     def __init__(self):
         super(Window, self).__init__()        
         
@@ -29,7 +29,7 @@ class Window(QtGui.QWidget):
         self.sys_icons = {} #systems icon paths
         self.sys_ems = {'nes': 'nestopia'} #correlate systems to emulators        
         
-        self.debug = True
+        self.debug = False
         
         #CONSTANTS
         if True == self.debug:
@@ -50,14 +50,14 @@ class Window(QtGui.QWidget):
         #Set basic properties
         self.setWindowTitle("CeMPulator")
         self.setStyleSheet("background: black; color: silver;")
-        self.layout = QtGui.QVBoxLayout(self)  
+        self.layout = QtWidgets.QVBoxLayout(self)  
         
         #read text files to fill systems and sys_icons dictionaries        
         self.get_icons()                
         
         #open display
         self.openHomeScreen()
-        self.showFullScreen()
+        #self.showFullScreen()
         
     def openHomeScreen(self):
         '''Build home screen containing manufacturer logos'''
@@ -69,18 +69,18 @@ class Window(QtGui.QWidget):
         mfg_buttons = []
         
         #create grid of manufacturer buttons        
-        grid = QtGui.QGridLayout(self)    
+        grid = QtWidgets.QGridLayout(self)    
         i = 0
         for mfg, systems in self.systems.items():
             icon_path = self.ASSET_PATH + mfg + self.OS_SEP + 'manufacturer.png'
             
-            mfg_buttons.append(QtGui.QPushButton('',self))
+            mfg_buttons.append(QtWidgets.QPushButton('',self))
             mfg_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             mfg_buttons[-1].setIconSize(QtCore.QSize(128,128))
             mfg_buttons[-1].clicked.connect(partial(self.openMfgScreen,mfg=mfg, systems=systems))
             grid.addWidget(mfg_buttons[-1],0,i)
             
-            label = QtGui.QLabel(mfg.capitalize())
+            label = QtWidgets.QLabel(mfg.capitalize())
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
             grid.addWidget(label,2,i)
@@ -93,7 +93,7 @@ class Window(QtGui.QWidget):
     
     def buildHeader(self, text):
         '''Build header message'''
-        header = QtGui.QLabel(text)
+        header = QtWidgets.QLabel(text)
         header.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         header.setStyleSheet('font-size: 15em; color: silver;')
         header_font = QtGui.QFont("Times",18,QtGui.QFont.Bold)
@@ -103,11 +103,11 @@ class Window(QtGui.QWidget):
     def buildUtilRow(self):
         '''Build bottom row containing power button and (on any screen other than 'home') a 'back' button'''        
       
-        util_row = QtGui.QGridLayout(self)
+        util_row = QtWidgets.QGridLayout(self)
         if self.curr_screen != "home":
             start_col = 1            
             
-            back_btn = QtGui.QPushButton('',self)
+            back_btn = QtWidgets.QPushButton('',self)
             back_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" + self.OS_SEP + "back.png"))
             back_btn.setIconSize(QtCore.QSize(64,64))
             back_btn.clicked.connect(self.prevPage)
@@ -118,11 +118,11 @@ class Window(QtGui.QWidget):
             
         for x in range (start_col,3):
             #create empty grid cells
-            space = QtGui.QPushButton('',self)
+            space = QtWidgets.QPushButton('',self)
             util_row.addWidget(space,0,x)
 
         #create power down button
-        power_btn = QtGui.QPushButton('',self)
+        power_btn = QtWidgets.QPushButton('',self)
         power_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen" + self.OS_SEP +"power.png"))
         power_btn.setIconSize(QtCore.QSize(64,64))
         power_btn.clicked.connect(self.powerDown)
@@ -139,7 +139,7 @@ class Window(QtGui.QWidget):
         
         self.layout.addWidget(self.buildHeader("Choose a system to see available games:"))
         
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         num_systems = len(systems)
         if num_systems > 4:
             max_col = 4
@@ -156,7 +156,7 @@ class Window(QtGui.QWidget):
         else:
             max_col = 1     
             rem = None
-  
+
         col = 0
         row = 0
         for system in systems:
@@ -168,17 +168,17 @@ class Window(QtGui.QWidget):
                     num_systems += -1
                     if num_systems < 4:
                         max_col = 3
-                
+
             icon_path = self.ASSET_PATH + mfg + self.OS_SEP + system.lower() + '.png'
-                        
+            print(icon_path)   
             sys_buttons = []                        
-            sys_buttons.append(QtGui.QPushButton('',self))
+            sys_buttons.append(QtWidgets.QPushButton('',self))
             sys_buttons[-1].setIcon(QtGui.QIcon(icon_path))
             sys_buttons[-1].setIconSize(QtCore.QSize(128,128))
             sys_buttons[-1].clicked.connect(partial(self.openSysScreen,mfg=mfg,system=system))
             grid.addWidget(sys_buttons[-1],row,col)
-            
-            label = QtGui.QLabel(system)
+            print("D")
+            label = QtWidgets.QLabel(system)
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
             grid.addWidget(label,row+1,col)
@@ -195,7 +195,7 @@ class Window(QtGui.QWidget):
         self.layout.addWidget(self.buildHeader("Select Game:"))
         roms = glob(self.ASSET_PATH + mfg + self.OS_SEP + "roms" + self.OS_SEP + "*." + system.lower())
 
-        grid = QtGui.QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         num_roms = len(roms)
         if num_roms > 4:
             max_col = 4
@@ -211,7 +211,7 @@ class Window(QtGui.QWidget):
             rem = None
         else:
             pass            
-            #self.layout.addWidget(QtGui.QPushButton('',self))        
+            #self.layout.addWidget(QtWidgets.QPushButton('',self))        
         
         col = 0
         row = 0
@@ -229,13 +229,13 @@ class Window(QtGui.QWidget):
                         max_col = 3
 
             game_buttons = []            
-            game_buttons.append(QtGui.QPushButton('',self))
+            game_buttons.append(QtWidgets.QPushButton('',self))
             game_buttons[-1].setIcon(QtGui.QIcon(ico))
             game_buttons[-1].setIconSize(QtCore.QSize(128,128))
             game_buttons[-1].clicked.connect(partial(self.startRom,system=system,rom=rom))
             grid.addWidget(game_buttons[-1],row,col)
             
-            label = QtGui.QLabel(game)
+            label = QtWidgets.QLabel(game)
             label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             label.setStyleSheet('color: silver; padding: 5px; text-align: center;')
             grid.addWidget(label,row+1,col)
@@ -245,12 +245,12 @@ class Window(QtGui.QWidget):
         self.layout.addLayout(self.buildUtilRow())
          
     def startRom(self, system, rom):
-        em_path = self.BASE_PATH + "emulators" + self.OS_SEP + self.sys_ems[system.lower()] + ".exe"
+        em_path = self.BASE_PATH + "emulators" + self.OS_SEP + self.sys_ems[system.lower()] 
         
         if True == self.debug:
-            os.system("START /MAX " + em_path + " \"" + rom + "\"")            
+            os.system("START /MAX " + em_path + " \"" + rom + ".exe\"")            
         else:
-            os.system("sudo ")
+            os.system("sudo " + em_path + " \"" + rom + "\"" )
 
     def prevPage(self):
         self.clearLayout(self.layout)
@@ -275,16 +275,16 @@ class Window(QtGui.QWidget):
         self.clearLayout(self.layout)
         self.layout.addWidget(self.buildHeader("Are you sure you would like to shut down?"))
         
-        choice_row = QtGui.QGridLayout(self)    
+        choice_row = QtWidgets.QGridLayout(self)    
         #create NO button        
-        no_btn = QtGui.QPushButton('',self)
+        no_btn = QtWidgets.QPushButton('',self)
         no_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\no.png"))
         no_btn.setIconSize(QtCore.QSize(64,64))
         no_btn.clicked.connect(partial(self.shutdownUserChoice,choice=False))
         choice_row.addWidget(no_btn,0,0)
         
         #create YES button
-        yes_btn = QtGui.QPushButton('',self)
+        yes_btn = QtWidgets.QPushButton('',self)
         yes_btn.setIcon(QtGui.QIcon(self.ASSET_PATH + "gen\\confirm.png"))
         yes_btn.setIconSize(QtCore.QSize(64,64))
         yes_btn.clicked.connect(partial(self.shutdownUserChoice,choice=True))
@@ -332,7 +332,7 @@ class Window(QtGui.QWidget):
         return
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     win = Window()
     win.show()
     sys.exit(app.exec_())
