@@ -216,7 +216,7 @@ class Window(QtWidgets.QWidget):
         col = 0
         row = 0
         for rom in roms:
-            game = rom.split('\\')[-1].split('.')[0]
+            game = rom.split(self.OS_SEP)[-1].split('.')[0]
             ico = self.ASSET_PATH + mfg + self.OS_SEP + "icons" + self.OS_SEP + game + ".png"
             print(ico)
             if col == max_col:
